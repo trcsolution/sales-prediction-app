@@ -61,7 +61,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-            Sales Data Analyzer 1.0
+            Sales Data Analyzer 1.0.1
           </h1>
           <div className="flex items-center space-x-4">
             <Link href="/subscription">
