@@ -1,6 +1,6 @@
 'use server'
 
-import { parse } from 'csv-parse/sync'
+import { parse } from 'csv-parse/sync';
 
 export interface SalesData {
   date: string;
@@ -9,15 +9,14 @@ export interface SalesData {
 }
 
 export async function processSalesData(csvContent: string): Promise<SalesData[]> {
-  const records = parse(csvContent, {
+  const records: SalesData[] = parse(csvContent, {
     columns: true,
-    skip_empty_lines: true
+    skip_empty_lines: true,
   });
 
-  return records.map((record: any) => ({
+  return records.map((record: SalesData) => ({
     date: record.date,
     article: record.article,
-    sales: parseInt(record.sales, 10)
+    sales: record.sales,
   }));
 }
-

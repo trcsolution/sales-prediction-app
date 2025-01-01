@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Chart from 'chart.js/auto'
-import { SalesData } from '../actions/process-sales-data'
+import { SalesData } from '../app/actions/process-sales-data'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 

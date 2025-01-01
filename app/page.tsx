@@ -6,13 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { BarChart, Upload, FileText, Download, CreditCard, Database } from 'lucide-react'
+import { BarChart, Upload, FileText, Download, CreditCard } from 'lucide-react'
 import { processSalesData, SalesData } from './actions/process-sales-data'
 import { predictSales } from './utils/predictions'
-import SalesChart from './components/sales-chart'
-import UserActions from './components/user-actions'
-import { useUser } from './hooks/useUser'
-import { setupDatabase } from './actions/setup-db'
+import SalesChart from '../components/sales-chart'
+
 
 export default function Home() {
   const [salesData, setSalesData] = useState<SalesData[]>([])
@@ -20,7 +18,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
   const [daysToPredict, setDaysToPredict] = useState(7)
-  const { user, loading } = useUser()
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -57,14 +54,7 @@ export default function Home() {
     URL.revokeObjectURL(url)
   }
 
-  const handleSetupDatabase = async () => {
-    const result = await setupDatabase()
-    if (result.success) {
-      alert('Database setup completed successfully')
-    } else {
-      alert(`Failed to set up database: ${result.error}`)
-    }
-  }
+  
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -74,19 +64,12 @@ export default function Home() {
             Sales Data Analyzer 1.0
           </h1>
           <div className="flex items-center space-x-4">
-            <UserActions />
             <Link href="/subscription">
               <Button variant="outline" className="flex items-center space-x-2">
                 <CreditCard className="w-4 h-4" />
                 <span>Subscription Plans</span>
               </Button>
             </Link>
-            {user && (
-              <Button variant="outline" className="flex items-center space-x-2" onClick={handleSetupDatabase}>
-                <Database className="w-4 h-4" />
-                <span>Setup Database</span>
-              </Button>
-            )}
           </div>
         </div>
         <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">

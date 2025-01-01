@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button'
 import { Check, ArrowLeft } from 'lucide-react'
 
-
 const plans = [
   {
     name: 'Free',
