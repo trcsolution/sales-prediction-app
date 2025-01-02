@@ -33,17 +33,17 @@ export default function SalesChart({ salesData, predictions, startDate, daysToPr
         const endDateObj = new Date(startDateObj)
         endDateObj.setDate(endDateObj.getDate() + daysToPredict - 1)
 
-        const groupedData = salesData.reduce((acc, { date, article, sales }) => {
-          if (!acc[article]) {
-            acc[article] = {}
-          }
-          acc[article][date] = (acc[article][date] || 0) + sales
-          return acc
-        }, {} as Record<string, Record<string, number>>)
+        // const groupedData = salesData.reduce((acc, { date, article, sales }) => {
+        //   if (!acc[article]) {
+        //     acc[article] = {}
+        //   }
+        //   acc[article][date] = (acc[article][date] || 0) + sales
+        //   return acc
+        // }, {} as Record<string, Record<string, number>>)
 
         const filteredArticles = selectedArticles.length > 0 ? selectedArticles : articles
 
-        const allDates = [];
+        const allDates:string[] = [];
         const lastHistoricalDate = new Date(Math.max(...salesData.map(d => new Date(d.date).getTime())));
         for (let i = 0; i < daysToPredict; i++) {
           const date = new Date(startDateObj);
@@ -82,7 +82,8 @@ export default function SalesChart({ salesData, predictions, startDate, daysToPr
             borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
             tension: 0.1,
             segment: {
-              borderDash: ctx => new Date(allDates[ctx.p0.parsed.x]) > lastHistoricalDate ? [5, 5] : undefined,
+              borderDash: undefined//[5, 5],// new Date(allDates[ctx.p0.parsed.x]) > lastHistoricalDate ? [5, 5] : undefined,
+              // borderDash: ctx => new Date(allDates[ctx.p0.parsed.x]) > lastHistoricalDate ? [5, 5] : undefined,
             }
           }]
         })
