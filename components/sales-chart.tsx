@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Chart from 'chart.js/auto'
-import { SalesData } from '../app/actions/process-sales-data'
+import { SalesData } from '@/app/actions/process-sales-data'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface SalesChartProps {
   salesData: SalesData[]
-  predictions: {[key: string]: number[]}
+  predictions: SalesData[]
+  startDate: string
+  daysToPredict: number
 }
 
-export default function SalesChart({ salesData, predictions }: SalesChartProps) {
+export default function SalesChart({ salesData, predictions, startDate, daysToPredict }: SalesChartProps) {
   const chartRef = useRef<HTMLCanvasElement | null>(null)
   const chartInstance = useRef<Chart | null>(null)
   const [selectedArticles, setSelectedArticles] = useState<string[]>([])
@@ -27,6 +29,10 @@ export default function SalesChart({ salesData, predictions }: SalesChartProps) 
           chartInstance.current.destroy()
         }
 
+        const startDateObj = new Date(startDate)
+        const endDateObj = new Date(startDateObj)
+        endDateObj.setDate(endDateObj.getDate() + daysToPredict - 1)
+
         const groupedData = salesData.reduce((acc, { date, article, sales }) => {
           if (!acc[article]) {
             acc[article] = {}
@@ -35,35 +41,51 @@ export default function SalesChart({ salesData, predictions }: SalesChartProps) 
           return acc
         }, {} as Record<string, Record<string, number>>)
 
-        const dates = Array.from(new Set(salesData.map(d => d.date))).sort()
         const filteredArticles = selectedArticles.length > 0 ? selectedArticles : articles
 
-        const datasets = filteredArticles.flatMap(article => {
-          const historicalData = dates.map(date => groupedData[article][date] || 0)
-          const predictionData = new Array(dates.length).fill(null).concat(predictions[article] || [])
-          
-          return [
-            {
-              label: `${article} (Historical)`,
-              data: historicalData,
-              borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
-              tension: 0.1
-            },
-            {
-              label: `${article} (Predicted)`,
-              data: predictionData,
-              borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
-              borderDash: [5, 5],
-              tension: 0.1
-            }
-          ]
-        })
+        const allDates = [];
+        const lastHistoricalDate = new Date(Math.max(...salesData.map(d => new Date(d.date).getTime())));
+        for (let i = 0; i < daysToPredict; i++) {
+          const date = new Date(startDateObj);
+          date.setDate(date.getDate() + i);
+          allDates.push(date.toISOString().split('T')[0]);
+        }
 
-        const allDates = [...dates, ...dates.slice(-1).map((lastDate, index) => {
-          const date = new Date(lastDate)
-          date.setDate(date.getDate() + index + 1)
-          return date.toISOString().split('T')[0]
-        })]
+
+        const datasets = filteredArticles.flatMap(article => {
+          const historicalData = salesData
+            .filter(d => d.article === article && new Date(d.date) <= lastHistoricalDate)
+            .reduce((acc, d) => {
+              acc[d.date] = (acc[d.date] || 0) + d.sales;
+              return acc;
+            }, {} as Record<string, number>);
+
+          const predictionData = predictions
+            .filter(p => p.article === article)
+            .reduce((acc, p) => {
+              acc[p.date] = p.sales;
+              return acc;
+            }, {} as Record<string, number>)
+
+          const combinedData = allDates.map(date => {
+            const dateObj = new Date(date);
+            if (dateObj <= lastHistoricalDate) {
+              return historicalData[date] || null;
+            } else {
+              return predictionData[date] || null;
+            }
+          });
+          
+          return [{
+            label: article,
+            data: combinedData,
+            borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+            tension: 0.1,
+            segment: {
+              borderDash: ctx => new Date(allDates[ctx.p0.parsed.x]) > lastHistoricalDate ? [5, 5] : undefined,
+            }
+          }]
+        })
 
         chartInstance.current = new Chart(ctx, {
           type: 'line',
@@ -86,6 +108,10 @@ export default function SalesChart({ salesData, predictions }: SalesChartProps) 
                 title: {
                   display: true,
                   text: 'Date'
+                },
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 45
                 }
               }
             },
@@ -108,7 +134,7 @@ export default function SalesChart({ salesData, predictions }: SalesChartProps) 
         chartInstance.current.destroy()
       }
     }
-  }, [salesData, predictions, selectedArticles])
+  }, [salesData, predictions, selectedArticles, startDate, daysToPredict])
 
   const handleArticleSelection = (value: string) => {
     setSelectedArticles(prev => 
